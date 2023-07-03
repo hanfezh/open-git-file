@@ -1,34 +1,32 @@
-function! s:OpenPkgFile()
-    let l:file_path = expand('%:p')
-    let l:prefix = $GOPATH .. '/pkg/mod/'
-    let l:at_index = stridx(l:file_path, '@')
-    if l:at_index < 0
+function! s:OpenPkgFile(file_path, prefix)
+    let l:at_idx = stridx(a:file_path, '@')
+    if l:at_idx < 0
         return
     endif
-    let l:slash_index = stridx(l:file_path, '/', l:at_index + 1)
-    if l:slash_index < 0
+    let l:slash_idx = stridx(a:file_path, '/', l:at_idx + 1)
+    if l:slash_idx < 0
         return
     endif
-    let l:version = l:file_path[l:at_index + 1 : l:slash_index - 1]
-    if l:version =~ '\vv[\.0-9]+\-[^-]+\-\w+'
+    let l:version = a:file_path[l:at_idx + 1 : l:slash_idx - 1]
+    if l:version =~ '\v^v[\.0-9]+\-[^-]+\-\w+$'
         let l:branch = '/blob/' .. l:version[strridx(l:version, "-") + 1:]
-    elseif l:version =~ '\vv[\.0-9]+'
-        let l:branch = '/tree/' .. l:version
+    elseif l:version =~ '\v^v[\.0-9]+$'
+        let l:branch = '/blob/' .. l:version
     else
         let l:branch = '/blob/master'
     endif
-    let l:remote_url = 'https://' .. l:file_path[strlen(l:prefix) : l:at_index - 1]
-    let l:remote_url = l:remote_url .. l:branch .. l:file_path[l:slash_index:]
-    let l:remote_url = l:remote_url .. '#L' .. line('.')
+    let l:remote_url = 'https://' .. a:file_path[strlen(a:prefix) : l:at_idx - 1]
+    let l:remote_url = l:remote_url .. l:branch .. a:file_path[l:slash_idx:]
+    let l:remote_url = l:remote_url .. '#L' .. string(line('.'))
     let l:command = printf('open "%s"', l:remote_url)
     call system(l:command)
 endfunction
 
-function! OpenGitFile()
+function! s:OpenGitFile()
     let l:file_path = expand('%:p')
     let l:prefix = $GOPATH .. '/pkg/mod/'
-    if l:file_path =~ '\v' .. l:prefix .. '.+\.go'
-        return s:OpenPkgFile()
+    if l:file_path =~ '\v^' .. l:prefix .. '.+$'
+        return s:OpenPkgFile(l:file_path, l:prefix)
     endif
 
     let l:git_root = system('git rev-parse --show-toplevel 2> /dev/null')[:-2]
@@ -44,7 +42,7 @@ function! OpenGitFile()
             endif
 
             let l:remote_url = substitute(l:remote_url, '\.git$', '', '') .. '/blob/' .. l:branch 
-            let l:remote_url = l:remote_url .. '/' .. l:relative_path .. '#L' .. line('.')
+            let l:remote_url = l:remote_url .. '/' .. l:relative_path .. '#L' .. string(line('.'))
             let l:command = printf('open "%s"', l:remote_url)
             call system(l:command)
             return
@@ -55,4 +53,4 @@ function! OpenGitFile()
     call system(l:command)
 endfunction
 
-command! OpenGitFile :call OpenGitFile()
+command! OpenGitFile :call s:OpenGitFile()
