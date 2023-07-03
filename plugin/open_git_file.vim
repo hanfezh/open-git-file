@@ -10,7 +10,7 @@ function! s:OpenPkgFile()
         return
     endif
     let l:version = l:file_path[l:at_index + 1 : l:slash_index - 1]
-    if l:version =~ '\vv[\.0-9]+\-[0-9]+\-\w+'
+    if l:version =~ '\vv[\.0-9]+\-[^-]+\-\w+'
         let l:branch = '/blob/' .. l:version[strridx(l:version, "-") + 1:]
     elseif l:version =~ '\vv[\.0-9]+'
         let l:branch = '/tree/' .. l:version
