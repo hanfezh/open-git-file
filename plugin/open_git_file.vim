@@ -1,6 +1,6 @@
 function! s:OpenPkgFile()
     let l:file_path = expand('%:p')
-    let l:prefix = $GOPATH . '/pkg/mod/'
+    let l:prefix = $GOPATH .. '/pkg/mod/'
     let l:at_index = stridx(l:file_path, '@')
     if l:at_index < 0
         return
@@ -11,22 +11,23 @@ function! s:OpenPkgFile()
     endif
     let l:version = l:file_path[l:at_index + 1 : l:slash_index - 1]
     if l:version =~ '\vv[\.0-9]+\-[0-9]+\-\w+'
-        let l:branch = '/blob/' . l:version[strridx(l:version, "-") + 1:]
+        let l:branch = '/blob/' .. l:version[strridx(l:version, "-") + 1:]
     elseif l:version =~ '\vv[\.0-9]+'
-        let l:branch = '/tree/' . l:version
+        let l:branch = '/tree/' .. l:version
     else
         let l:branch = '/blob/master'
     endif
-    let l:remote_url = 'https://' . l:file_path[strlen(l:prefix) : l:at_index - 1]
-    let l:remote_url = l:remote_url . l:branch . l:file_path[l:slash_index:]
+    let l:remote_url = 'https://' .. l:file_path[strlen(l:prefix) : l:at_index - 1]
+    let l:remote_url = l:remote_url .. l:branch .. l:file_path[l:slash_index:]
+    let l:remote_url = l:remote_url .. '#L' .. line('.')
     let l:command = printf('open "%s"', l:remote_url)
     call system(l:command)
 endfunction
 
 function! OpenGitFile()
     let l:file_path = expand('%:p')
-    let l:prefix = $GOPATH . '/pkg/mod/'
-    if l:file_path =~ '\v' . l:prefix . '.+\.go'
+    let l:prefix = $GOPATH .. '/pkg/mod/'
+    if l:file_path =~ '\v' .. l:prefix .. '.+\.go'
         return s:OpenPkgFile()
     endif
 
@@ -42,7 +43,8 @@ function! OpenGitFile()
                 let l:remote_url = substitute(l:remote_url, '^git@', 'https://', '')
             endif
 
-            let l:remote_url = substitute(l:remote_url, '\.git$', '', '') . '/blob/' . l:branch . '/' . l:relative_path
+            let l:remote_url = substitute(l:remote_url, '\.git$', '', '') .. '/blob/' .. l:branch 
+            let l:remote_url = l:remote_url .. '/' .. l:relative_path .. '#L' .. line('.')
             let l:command = printf('open "%s"', l:remote_url)
             call system(l:command)
             return
