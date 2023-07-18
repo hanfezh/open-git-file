@@ -42,8 +42,8 @@ function! s:OpenGitFile()
     endif
 
     let l:git_root = system('git rev-parse --show-toplevel 2> /dev/null')[:-2]
-    if strlen(l:git_root) > 0
-        let l:relative_path = fnamemodify(l:file_path, ':~:.')
+    if strlen(l:git_root) > 0 && l:file_path =~ l:git_root
+        let l:relative_path = l:file_path[strlen(l:git_root):]
         let l:remote_url = system('git config --get remote.origin.url')[:-2]
         let l:branch = system('git rev-parse --abbrev-ref HEAD')[:-2]
 
@@ -54,7 +54,7 @@ function! s:OpenGitFile()
             endif
 
             let l:remote_url = substitute(l:remote_url, '\.git$', '', '') .. '/blob/' .. l:branch 
-            let l:remote_url = l:remote_url .. '/' .. l:relative_path .. '#L' .. string(line('.'))
+            let l:remote_url = l:remote_url .. l:relative_path .. '#L' .. string(line('.'))
             call s:ExecuteOpen(l:remote_url)
             return
         endif
