@@ -64,3 +64,4 @@ function! s:OpenGitFile()
 endfunction
 
 command! OpenGitFile :call s:OpenGitFile()
+command! OpenLocalFile :!open %
